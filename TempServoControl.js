@@ -18,7 +18,7 @@ setTimeout(setAngle(.9), 800);
 //setTimeout(setAngle(1), 800);
 
 
-function setAngle(angle){
+exports.tempS = function setAngle(angle){
     var duty = (angle * 0.115) + duty_min;
     servo.analogWrite(servopin, duty, 60);
 }
