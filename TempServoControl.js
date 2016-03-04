@@ -9,12 +9,12 @@ var duty_min = 0.03;
 
 servo.pinMode(servopin, servo.ANALOG_OUTPUT);
 
-setTimeout(setAngle(.1), 800); //these commands work however they will not work in succession... only one will work if the others are commented out
+//setTimeout(setAngle(.1), 800); //these commands work however they will not work in succession... only one will work if the others are commented out
 //setTimeout(setAngle(.2), 800);
 //setTimeout(setAngle(.3), 800);
 //setTimeout(setAngle(.35), 800);
 //setTimeout(setAngle(.4), 800);
-setTimeout(setAngle(.9), 800);
+//setTimeout(setAngle(.9), 800);
 //setTimeout(setAngle(1), 800);
 
 

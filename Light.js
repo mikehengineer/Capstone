@@ -20,4 +20,4 @@ exports.function readL(){
     return boneLight.analogRead('P9_38', lightDisplay);
 }
 
-//set interval in server eaccess readL from server (-1 for error)
+//set interval in server eaccess readL from server (-1 for erro)
