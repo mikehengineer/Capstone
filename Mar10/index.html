@@ -1,0 +1,53 @@
+<html>
+<head>
+    <script src = "/socket.io/socket.io.js" > </script>
+    <script type=text/javascript src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
+    <script>
+    var socket = io.connect();
+    socket.on("temp", tempUpdate);        //call function to update temperature value
+    socket.on("light", lightUpdate);
+
+    function tempUpdate(temp){
+        console.log("In TempUpdate");
+        var input = JSON.parse(temp);       //read the input from tempUpdate with JSON this should be an object with a temp field
+        var newTemp = input.temp;            //get the temp field
+        var celcius = (newTemp - 500) / 10;   //celcius calculation
+        var fahrenheit = (celcius * 9/5) + 32;  //fahrenheit calculation
+        $("#temperaturef").html(" " + fahrenheit + " F");   //use Jquery to change the temperaturef DOM
+        $("#temperaturec").html(" " + celcius + " C");      //use Jquery to change the temperaturec DOM
+    }
+    
+    function lightUpdate(light){
+        var input = JSON.parse(light);      //read input from lightUpdate
+        var newLight = input.light;         //get the light field
+        $("#lightlevel").html(" " + newLight);  //use Jquery to change the lightlevel DOM
+    }
+    </script>
+</head>
+
+<body>
+    <h1 style="font-size:50pt;">Temperature (Fahrenheit)</h1>
+    <h2 style="font-size:25pt;"id="temperaturef">-</h2>
+    <h1 style="font-size:50pt;">Temperature (Celcius)</h1>
+    <h2 style="font-size:25pt;"id="temperaturec">-</h2>
+    <h1 style="font-size:50pt;">Current Light Level</h1>
+    <h2 style="font-size:25pt;"id="lightlevel">-</h2>
+    Temperature Servo Angle (1-10): <input type="textbox" id="tempA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';"/>
+    <button onclick="moveTempServo()">Move Servo</button>
+    </p>
+    Light Servo Angle (1-10): <input type="textbox" id="lightA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';"/>
+    <button onclick="moveLightServo()">Move Servo</button>
+    <script>
+        function moveTempServo(){
+            var tAngle = document.getElementById("tempA").value;
+            var newtAngle = tAngle/10;
+            socket.emit('moveTServo', newtAngle);
+        }
+        function moveLightServo(){
+            var lAngle = document.getElementById("lightA").value;
+            var newlAngle = lAngle/10;
+            socket.emit('moveLServo', newlAngle);
+        }
+    </script>
+</body>
+</html>

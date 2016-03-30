@@ -7,7 +7,7 @@ var fs = require('fs');     //need filesystem module
 var boneserver = require('bonescript');
 var io = require('socket.io').listen(http);     //need io capabilities for this
 var port = 9090; //avoid port 80 (web service) and port 3000 (cloud9 IDE)
-var database = require('./SensorDatabase.js');
+
 var lightMonitor = require('./Light.js');
 var tempMonitor = require('./Temperature.js');
 var tempServo = require('./TempServoControl.js');
@@ -17,45 +17,36 @@ var Temp;
 var tempHolder;     //variable to compare temp level
 var Light;
 var lightHolder;    //variable to compare light level
-var updateInterval = 1000;
+var updateInterval = 10000;
 
  //create a server that reads in the callback listener function -> write later
 http.listen(port); //start listening on port 9090
-database.dbRun();  //start our database
 
-console.log("Home Automation Webserver Started!");
+//test functions
+var testlight = lightMonitor.light;
+console.log("Current light level: " + testlight);
 
-//database test
-
-database.dbInsert(1, '12:00:01', 5);
-database.dbInsert(1, '12:00:02', 6);
-database.dbInsert(1, '12:00:03', 7);
-database.dbInsert(1, '12:00:04', 8);
-database.dbInsert(1, '12:00:05', 9);
-var dataTest = database.dbGrab(1, 5, 10);
-//console.log(JSON.stringify(dataTest));
-
-function listener(req, res){
-    fs.readFile('index.html', function (err, data){                                              //read our index html and initiate callback function that will check for 500 error or will  
+function listener(request, reponse){
+    fs.readFile('HomeAutomation/index.html', function (err, data){                                              //read our index html and initiate callback function that will check for 500 error or will  
                                                 if (err){                                                       //additionally it is best practice to wrap asynchronous calls with your own callback functions
-                                                    res.writeHead(500);                                    //error encountered (internal server error)
-                                                    return res.end('Unable to load index.html');           //tell the user about it
+                                                    response.writeHead(500);                                    //error encountered (internal server error)
+                                                    return response.end('Unable to load index.html');           //tell the user about it
                                                 }
-                                                res.writeHead(200);                                        //everything went ok - no errors
-                                                res.end(data);                                             //return the contents of our html
+                                                response.writeHead(200);                                        //everything went ok - no errors
+                                                response.end(data);                                             //return the contents of our html
                                                 }
 )}
     
 io.sockets.on('connection', function (socket){             //list of functions we will support when a socket is opened via callback
-    socket.on('moveLServo', moveLServo);      //call moveLServo method and pass toggleLServo value from client
-    socket.on('moveTServo', moveTServo);      //call moveTServo method with toggleTServo value from client
+    socket.on('moveLServo', toggleLServo);      //call moveLServo method and pass toggleLServo value from client
+    socket.on('moveTServo', toggleTServo);      //call moveTServo method with toggleTServo value from client
     socket.on('setTimer', settimerInterval);    //the following setInterval method runs continuous on socket connection where it continuously monitors sensors and updates when it detects change
     setInterval(function(){ 
-        tempHolder = tempMonitor.temp();          //check current temp
-        lightHolder = lightMonitor.light();       //check current light
+        tempHolder = tempMonitor.temp;          //check current temp
+        lightHolder = lightMonitor.light;       //check current light
             if(tempHolder != Temp || lightHolder != Light){     //if either sensor is different from the established valued
-                socket.emit('light', '{"light":"' + lightHolder + '"}');        //emit new light reading
-                socket.emit('temp', '{"temp":"' + tempHolder + '"}');          //emit new temperature reading
+                socket.emit('light', '{"light":"' + lightHolder + '}');        //emit new light reading
+                socket.emit('temp', '{"temp":"' + tempHolder + '}');          //emit new temperature reading
                 Temp = tempHolder;      //make new value the established value
                 Light = lightHolder;    //make new value the established value
             }
@@ -69,33 +60,12 @@ function settimerInterval(newInterval){
 }
 
 function moveLServo(pulseL){
-    lightServo.lightS(pulseL);
+    //pass servo movement
 }
 
 function moveTServo(pulseT){
-   tempServo.tempS(pulseT);        //unsure if we can pass exported modules a value MAY NOT WORK
+    tempServo.tempS(pulseT);        //unsure if we can pass exported modules a value MAY NOT WORK
 }
-
-process.stdin.resume();
-
-process.on('SIGINT', function() { //if our server process is interrupted call our server and db close
-  serverClose();
-});
-
-process.on('exit', function(){
-    serverClose();
-});
-
-process.on('SIGTERM', function(){
-    serverClose();
-});
-
-function serverClose(){
-    console.log("Shuting down... closing database...");
-    database.dbClose();
-}
-
-
 
 
 
@@ -109,9 +79,7 @@ function serverClose(){
 //http://www.sitepoint.com/understanding-module-exports-exports-node-js/
 //http://danielnill.com/nodejs-tutorial-with-socketio/
 //http://nodecasts.net/episodes/5-thinking-asynchronously
-//http://stackoverflow.com/questions/18692536/node-js-server-close-event-doesnt-appear-to-fire
 
 //listener function handles all incoming requests after the creation of the server -- the function uses readFile to read the entire html page and to return it
 
 //3/3/2016 - we may want to not use an anonymous function for our setinterval call - need to fix imported sensor modules
-//celcius and fahrenheit button switch
