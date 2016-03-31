@@ -7,7 +7,7 @@ var fs = require('fs');     //need filesystem module
 var boneserver = require('bonescript');
 var io = require('socket.io').listen(http);     //need io capabilities for this
 var port = 9090; //avoid port 80 (web service) and port 3000 (cloud9 IDE)
-
+var database = require('./SensorDatabase.js');
 var lightMonitor = require('./Light.js');
 var tempMonitor = require('./Temperature.js');
 var tempServo = require('./TempServoControl.js');
@@ -21,8 +21,19 @@ var updateInterval = 1000;
 
  //create a server that reads in the callback listener function -> write later
 http.listen(port); //start listening on port 9090
+database.dbRun();  //start our database
 
 console.log("Home Automation Webserver Started!");
+
+//database test
+
+database.dbInsert(1, '12:00:01', 5);
+database.dbInsert(1, '12:00:02', 6);
+database.dbInsert(1, '12:00:03', 7);
+database.dbInsert(1, '12:00:04', 8);
+database.dbInsert(1, '12:00:05', 9);
+var dataTest = database.dbGrab(1, 5, 10);
+//console.log(JSON.stringify(dataTest));
 
 function listener(req, res){
     fs.readFile('index.html', function (err, data){                                              //read our index html and initiate callback function that will check for 500 error or will  
@@ -65,6 +76,27 @@ function moveTServo(pulseT){
    tempServo.tempS(pulseT);        //unsure if we can pass exported modules a value MAY NOT WORK
 }
 
+process.stdin.resume();
+
+process.on('SIGINT', function() { //if our server process is interrupted call our server and db close
+  serverClose();
+});
+
+process.on('exit', function(){
+    serverClose();
+});
+
+process.on('SIGTERM', function(){
+    serverClose();
+});
+
+function serverClose(){
+    console.log("Shuting down... closing database...");
+    database.dbClose();
+}
+
+
+
 
 
 
@@ -77,6 +109,7 @@ function moveTServo(pulseT){
 //http://www.sitepoint.com/understanding-module-exports-exports-node-js/
 //http://danielnill.com/nodejs-tutorial-with-socketio/
 //http://nodecasts.net/episodes/5-thinking-asynchronously
+//http://stackoverflow.com/questions/18692536/node-js-server-close-event-doesnt-appear-to-fire
 
 //listener function handles all incoming requests after the creation of the server -- the function uses readFile to read the entire html page and to return it
 
