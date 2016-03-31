@@ -7,8 +7,8 @@ var db = new sqlite3.Database('SensorDatabase'); // newdata is the name of my da
 
 exports.dbRun = function runDB(){
     db.serialize(function() {
-        db.run("CREATE TABLE IF NOT EXISTS Temperature (id INTEGER PRIMARY KEY, time TEXT, value INT)"); // Ran at server startup, creates DB if it does not exist
-        db.run("CREATE TABLE IF NOT EXISTS Light (id INTEGER PRIMARY KEY, time TEXT, value INT)");
+        db.run("CREATE TABLE IF NOT EXISTS Temperature (id INTEGER PRIMARY KEY, time INTEGER, value INT)"); // Ran at server startup, creates DB if it does not exist
+        db.run("CREATE TABLE IF NOT EXISTS Light (id INTEGER PRIMARY KEY, time INTEGER, value INT)");
         console.log("Database initialized");
     });
 }
@@ -16,7 +16,7 @@ exports.dbRun = function runDB(){
 exports.dbInsert = function insertDB(type, time, value){ // make type an integer so we don't have to deal with string comparison temp = 1 light = 2
     db.serialize(function() {
     if (type == 1){ //if temp
-        var tmpstmt = db.prepare("INSERT INTO Temperature VALUES(NULL,?,?)"); //null for ID so it will autoincrement
+        var tmpstmt = db.prepare("INSERT INTO Temperature VALUES(NULL,?,?);"); //null for ID so it will autoincrement
         tmpstmt.run(time, value); //insert the given values
         tmpstmt.finalize();
     }
@@ -29,19 +29,16 @@ exports.dbInsert = function insertDB(type, time, value){ // make type an integer
 }
 
 
-exports.dbGrab = function grabDB(type, lowRange, highRange){ //lets create a javascript object and populate its fields LATER: where to JSON serialize here or in server layer 
+exports.dbGrab = function grabDB(callback, type, lowRange, highRange){ //lets create a javascript object and populate its fields LATER: where to JSON serialize here or in server layer 
     db.serialize(function() {
     if (type == 1){ //if temp
-        db.each("SELECT * FROM Temperature WHERE id BETWEEN ? and ?", lowRange, highRange, function(err, row) {
-         //console.log(JSON.stringify(row));
-         var timeReturn = row;
-         console.log(JSON.stringify(timeReturn));
-         return timeReturn;
+        db.all("SELECT * FROM Temperature WHERE id BETWEEN ? and ?", lowRange, highRange, function(err, all) { //have our callback call our callback (I know)
+         callback(err, all); //call the callback
         });
     }
     if (type == 2){ //if light
-        db.get("SELECT * FROM Light WHERE id BETWEEN ? and ?", lowRange, highRange, function(err, row) {
-         console.log(row.id + " : " + row.time + " : " + row.value); 
+        db.all("SELECT * FROM Light WHERE id BETWEEN ? and ?", lowRange, highRange, function(err, all) { //same as above
+         callback(err,all); //same as above
         });
     }
     });
@@ -66,3 +63,5 @@ exports.dbClose = function closeDB(){
 //http://stackoverflow.com/questions/17731470/how-to-format-node-js-sqlite3-record-set-as-a-json-object-of-record-arrays
 //http://www.w3schools.com/json/
 //http://www.sqlite.org/autoinc.html
+//http://stackoverflow.com/questions/15575914/how-to-read-a-sqlite3-database-using-node-js-synchronously
+//http://stackoverflow.com/questions/2190850/create-a-custom-callback-in-javascript

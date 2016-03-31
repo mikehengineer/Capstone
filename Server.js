@@ -27,13 +27,26 @@ console.log("Home Automation Webserver Started!");
 
 //database test
 
-database.dbInsert(1, '12:00:01', 5);
-database.dbInsert(1, '12:00:02', 6);
-database.dbInsert(1, '12:00:03', 7);
-database.dbInsert(1, '12:00:04', 8);
-database.dbInsert(1, '12:00:05', 9);
-var dataTest = database.dbGrab(1, 5, 10);
-//console.log(JSON.stringify(dataTest));
+//setTimeout(database.dbInsert(1, grabTime(), 5), 1000);
+//setTimeout(database.dbInsert(1, grabTime(), 6), 6000);
+//setTimeout(database.dbInsert(1, grabTime(), 7), 15000);
+//setTimeout(database.dbInsert(1, grabTime(), 8), 40000);
+//setTimeout(database.dbInsert(1, grabTime(), 9), 60000);
+
+
+//var valueHolder = 5;
+//setInterval(function(){
+//    database.dbInsert(1, grabTime(), valueHolder);
+//    valueHolder = valueHolder + 5;
+//}, 15000)
+
+//var dataTest;
+//database.dbGrab(function callback(err, tempResult){ //provide an anonymous callback function to our database query function results in all
+//    dataTest = tempResult;
+//    console.log(JSON.stringify(dataTest));
+//    }, 1, 1, 5);
+
+//console.log(grabTime());
 
 function listener(req, res){
     fs.readFile('index.html', function (err, data){                                              //read our index html and initiate callback function that will check for 500 error or will  
@@ -53,17 +66,49 @@ io.sockets.on('connection', function (socket){             //list of functions w
     setInterval(function(){ 
         tempHolder = tempMonitor.temp();          //check current temp
         lightHolder = lightMonitor.light();       //check current light
-            if(tempHolder != Temp || lightHolder != Light){     //if either sensor is different from the established valued
-                socket.emit('light', '{"light":"' + lightHolder + '"}');        //emit new light reading
+        database.dbInsert(1, grabTime(), tempHolder);
+        database.dbInsert(2, grabTime(), lightHolder);
+            if(tempHolder != Temp){     //if either sensor is different from the established valued
                 socket.emit('temp', '{"temp":"' + tempHolder + '"}');          //emit new temperature reading
                 Temp = tempHolder;      //make new value the established value
+            }
+            if(lightHolder != Light){
+                socket.emit('light', '{"light":"' + lightHolder + '"}');        //emit new light reading
                 Light = lightHolder;    //make new value the established value
             }
             }
             ,updateInterval);           //this is the frequency that this callback function is toggled
 });
 
+setInterval(function logData(){     //log data independent of whether there is a socket connection
+    var tempforDB = tempMonitor.temp();
+    var lightforDB = lightMonitor.light();
+    database.dbInsert(1, grabTime(), tempforDB);
+    database.dbInsert(2, grabTime(), lightforDB);
+}, 10000);
 
+function grabTime(){// lets grab the time and return it as a large integer value
+    var time = new Date();
+    
+    var year = time.getFullYear();
+    var month = time.getMonth() + 1; //starts at 0 so add one
+    var day = time.getDate();
+    var hour = time.getHours();
+    var minute = time.getMinutes();
+    var second = time.getSeconds();
+    
+    //lets get these into the correct place holding form XXXX(year)XX(month)XX(day)XX(hour)XX(minute)XX(second) -> full: XX,XXX,XXX,XXX,XXX 14 digit integer
+    year = year * 10000000000;
+    month = month * 100000000;
+    day = day * 1000000;
+    hour = hour * 10000
+    minute = minute * 100;
+    
+    var integerTime = 0;
+    integerTime = second + minute + hour + day + month + year;
+    
+    return integerTime;
+}
 function settimerInterval(newInterval){
     updateInterval = newInterval;     //user specified interval
 }
@@ -73,7 +118,7 @@ function moveLServo(pulseL){
 }
 
 function moveTServo(pulseT){
-   tempServo.tempS(pulseT);        //unsure if we can pass exported modules a value MAY NOT WORK
+   tempServo.tempS(pulseT);       
 }
 
 process.stdin.resume();
