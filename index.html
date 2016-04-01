@@ -6,6 +6,7 @@
     var socket = io.connect();
     socket.on("temp", tempUpdate);        //call function to update temperature value
     socket.on("light", lightUpdate);
+    socket.on("dataReturn", updateDatabaseView);
 
     function tempUpdate(temp){
         console.log("In TempUpdate");
@@ -22,6 +23,12 @@
         var newLight = input.light;         //get the light field
         $("#lightlevel").html(" " + newLight);  //use Jquery to change the lightlevel DOM
     }
+    
+    function updateDatabaseView(returnedData){
+        //var testReturn = JSON.parse(returnedData);
+        //var testReturn2 = testReturn.light;
+        $("#databaseReturn").html(" " + returnedData);
+    }
     </script>
 </head>
 
@@ -32,11 +39,19 @@
     <h2 style="font-size:25pt;"id="temperaturec">-</h2>
     <h1 style="font-size:50pt;">Current Light Level</h1>
     <h2 style="font-size:25pt;"id="lightlevel">-</h2>
+    
     Temperature Servo Angle (1-10): <input type="textbox" id="tempA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';"/>
     <button onclick="moveTempServo()">Move Servo</button>
     </p>
+    
     Light Servo Angle (1-10): <input type="textbox" id="lightA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';"/>
     <button onclick="moveLightServo()">Move Servo</button>
+    </p>
+    
+    Generate Database Query (Time -20 Seconds): <button onclick="getDatabaseInfo()">Generate</button>
+    </p>
+    
+    <h2 style="font-size:15pt;"id="databaseReturn">new</h2>
     <script>
         function moveTempServo(){
             var tAngle = document.getElementById("tempA").value;
@@ -47,6 +62,33 @@
             var lAngle = document.getElementById("lightA").value;
             var newlAngle = lAngle/10;
             socket.emit('moveLServo', newlAngle);
+        }
+        function getDatabaseInfo(){
+            var timeHolder = grabTime();
+            socket.emit('database', timeHolder);
+        }
+        
+        function grabTime(){// lets grab the time and return it as a large integer value
+            var time = new Date();
+    
+            var year = time.getFullYear();
+            var month = time.getMonth() + 1; //starts at 0 so add one
+            var day = time.getDate();
+            var hour = time.getHours();
+            var minute = time.getMinutes();
+            var second = time.getSeconds();
+    
+            //lets get these into the correct place holding form XXXX(year)XX(month)XX(day)XX(hour)XX(minute)XX(second) -> full: XX,XXX,XXX,XXX,XXX 14 digit integer
+            year = year * 10000000000;
+            month = month * 100000000;
+            day = day * 1000000;
+            hour = hour * 10000;
+            minute = minute * 100;
+    
+            var integerTime = 0;
+            integerTime = second + minute + hour + day + month + year;
+    
+            return integerTime;
         }
     </script>
 </body>

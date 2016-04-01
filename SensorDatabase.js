@@ -18,7 +18,7 @@ exports.dbInsert = function insertDB(type, time, value){ // make type an integer
     if (type == 1){ //if temp
         var tmpstmt = db.prepare("INSERT INTO Temperature VALUES(NULL,?,?);"); //null for ID so it will autoincrement
         tmpstmt.run(time, value); //insert the given values
-        tmpstmt.finalize();
+        tmpstmt.finalize(); //finalize and run our insert
     }
     else if (type == 2){  //if light
         var lightstmt = db.prepare("INSERT INTO Light VALUES(NULL,?,?)");
@@ -29,15 +29,15 @@ exports.dbInsert = function insertDB(type, time, value){ // make type an integer
 }
 
 
-exports.dbGrab = function grabDB(callback, type, lowRange, highRange){ //lets create a javascript object and populate its fields LATER: where to JSON serialize here or in server layer 
+exports.dbGrab = function grabDB(callback, type, lowRange, highRange){ //lets create a javascript object and populate its fields
     db.serialize(function() {
     if (type == 1){ //if temp
-        db.all("SELECT * FROM Temperature WHERE id BETWEEN ? and ?", lowRange, highRange, function(err, all) { //have our callback call our callback (I know)
+        db.all("SELECT * FROM Temperature WHERE time BETWEEN ? and ?", lowRange, highRange, function(err, all) { //have our callback call our callback (I know)
          callback(err, all); //call the callback
         });
     }
     if (type == 2){ //if light
-        db.all("SELECT * FROM Light WHERE id BETWEEN ? and ?", lowRange, highRange, function(err, all) { //same as above
+        db.all("SELECT * FROM Light WHERE time BETWEEN ? and ?", lowRange, highRange, function(err, all) { //same as above
          callback(err,all); //same as above
         });
     }

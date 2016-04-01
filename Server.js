@@ -17,75 +17,58 @@ var Temp;
 var tempHolder;     //variable to compare temp level
 var Light;
 var lightHolder;    //variable to compare light level
-var updateInterval = 1000;
+var updateInterval = 3000;
 
- //create a server that reads in the callback listener function -> write later
-http.listen(port); //start listening on port 9090
-database.dbRun();  //start our database
+//create a server that reads in the callback listener function -> write later
+http.listen(port);      //start listening on port 9090
+database.dbRun();       //start our database
 
 console.log("Home Automation Webserver Started!");
 
-//database test
-
-//setTimeout(database.dbInsert(1, grabTime(), 5), 1000);
-//setTimeout(database.dbInsert(1, grabTime(), 6), 6000);
-//setTimeout(database.dbInsert(1, grabTime(), 7), 15000);
-//setTimeout(database.dbInsert(1, grabTime(), 8), 40000);
-//setTimeout(database.dbInsert(1, grabTime(), 9), 60000);
-
-
-//var valueHolder = 5;
-//setInterval(function(){
-//    database.dbInsert(1, grabTime(), valueHolder);
-//    valueHolder = valueHolder + 5;
-//}, 15000)
-
-//var dataTest;
-//database.dbGrab(function callback(err, tempResult){ //provide an anonymous callback function to our database query function results in all
-//    dataTest = tempResult;
-//    console.log(JSON.stringify(dataTest));
-//    }, 1, 1, 5);
-
-//console.log(grabTime());
-
 function listener(req, res){
-    fs.readFile('index.html', function (err, data){                                              //read our index html and initiate callback function that will check for 500 error or will  
-                                                if (err){                                                       //additionally it is best practice to wrap asynchronous calls with your own callback functions
-                                                    res.writeHead(500);                                    //error encountered (internal server error)
-                                                    return res.end('Unable to load index.html');           //tell the user about it
+    fs.readFile('index.html', function (err, data){                              //read our index html and initiate callback function that will check for 500 error or will  
+                                                if (err){                            //additionally it is best practice to wrap asynchronous calls with your own callback functions
+                                                    res.writeHead(500);                           //error encountered (internal server error)
+                                                    return res.end('Unable to load index.html');      //tell the user about it
                                                 }
-                                                res.writeHead(200);                                        //everything went ok - no errors
-                                                res.end(data);                                             //return the contents of our html
+                                                res.writeHead(200);                                  //everything went ok - no errors
+                                                res.end(data);                                    //return the contents of our html
                                                 }
 )}
     
 io.sockets.on('connection', function (socket){             //list of functions we will support when a socket is opened via callback
-    socket.on('moveLServo', moveLServo);      //call moveLServo method and pass toggleLServo value from client
-    socket.on('moveTServo', moveTServo);      //call moveTServo method with toggleTServo value from client
-    socket.on('setTimer', settimerInterval);    //the following setInterval method runs continuous on socket connection where it continuously monitors sensors and updates when it detects change
-    setInterval(function(){ 
+    socket.on('moveLServo', moveLServo);                //call moveLServo method and pass toggleLServo value from client
+    socket.on('moveTServo', moveTServo);                 //call moveTServo method with toggleTServo value from client
+    socket.on('setTimer', settimerInterval);             //the following setInterval method runs continuous on socket connection where it continuously monitors sensors and updates when it detects change
+    socket.on('database', function (timePosition){          //anonymous function for our database query
+        var timePositionOffset = timePosition - 120;        //remove 120 seconds (allow user to set this in the future) this is the range of the data returned
+        var dataTest;                                           //declare our variable to hold our database results
+        database.dbGrab(function callback(err, tempResult){     //provide an anonymous callback function to our database query function, results in tempResult, this will be called once query is completed
+        dataTest = tempResult;                                   //move our db.Grab data into our holder variable
+        socket.emit('dataReturn', JSON.stringify(dataTest));      //once our query is complete and our data held in our holder variable, emit the holder variable over the socket, data will be an array of JSON objects
+        }, 1, timePositionOffset, timePosition);                //the input to dbGrab, declared after our anonymous callback above, this corresponds to type (1 for temp 2 for light), lowerRange, highRange
+    });
+    setInterval(function(){                 //perform this on a regular interval, this will continously update our webpage with current temp and light values
         tempHolder = tempMonitor.temp();          //check current temp
         lightHolder = lightMonitor.light();       //check current light
-        database.dbInsert(1, grabTime(), tempHolder);
-        database.dbInsert(2, grabTime(), lightHolder);
-            if(tempHolder != Temp){     //if either sensor is different from the established valued
+            if(tempHolder != Temp){              //if either sensor is different from the established valued
                 socket.emit('temp', '{"temp":"' + tempHolder + '"}');          //emit new temperature reading
-                Temp = tempHolder;      //make new value the established value
+                Temp = tempHolder;               //make new value the established value
             }
             if(lightHolder != Light){
                 socket.emit('light', '{"light":"' + lightHolder + '"}');        //emit new light reading
-                Light = lightHolder;    //make new value the established value
+                Light = lightHolder;            //make new value the established value
             }
             }
             ,updateInterval);           //this is the frequency that this callback function is toggled
 });
 
-setInterval(function logData(){     //log data independent of whether there is a socket connection
-    var tempforDB = tempMonitor.temp();
-    var lightforDB = lightMonitor.light();
-    database.dbInsert(1, grabTime(), tempforDB);
-    database.dbInsert(2, grabTime(), lightforDB);
-}, 10000);
+setInterval(function logData(){         //log data independent of whether there is a socket connection
+    var tempforDB = tempMonitor.temp();      //grab temp reading
+    var lightforDB = lightMonitor.light();      //grab light reading
+    database.dbInsert(1, grabTime(), tempforDB);        //insert temp
+    database.dbInsert(2, grabTime(), lightforDB);        //insert light
+}, 4000);       //log data interval
 
 function grabTime(){// lets grab the time and return it as a large integer value
     var time = new Date();
@@ -98,16 +81,17 @@ function grabTime(){// lets grab the time and return it as a large integer value
     var second = time.getSeconds();
     
     //lets get these into the correct place holding form XXXX(year)XX(month)XX(day)XX(hour)XX(minute)XX(second) -> full: XX,XXX,XXX,XXX,XXX 14 digit integer
+    
     year = year * 10000000000;
     month = month * 100000000;
     day = day * 1000000;
-    hour = hour * 10000
+    hour = hour * 10000;
     minute = minute * 100;
     
     var integerTime = 0;
     integerTime = second + minute + hour + day + month + year;
     
-    return integerTime;
+    return integerTime; //our 14 digit time integer
 }
 function settimerInterval(newInterval){
     updateInterval = newInterval;     //user specified interval
