@@ -12,6 +12,7 @@ var lightMonitor = require('./Light.js');
 var tempMonitor = require('./Temperature.js');
 var tempServo = require('./TempServoControl.js');
 var lightServo = require('./LightServoControl.js');
+var url = require('url');
 
 var Temp;
 var tempHolder;     //variable to compare temp level
@@ -26,7 +27,23 @@ database.dbRun();       //start our database
 console.log("Home Automation Webserver Started!");
 
 function listener(req, res){
-    fs.readFile('index.html', function (err, data){                              //read our index html and initiate callback function that will check for 500 error or will  
+    var urlPath = url.parse(req.url).pathname;
+    var pageName;
+    switch(urlPath) {
+        case '/analytics':
+            pageName = 'analytics.html';
+        break;
+        case '/developerbio':
+            pageName = 'developerbio.html';
+        break;
+        case '/project':
+            pageName = 'project.html';
+        break;
+        default:
+            pageName = 'index.html';
+        break;
+    }
+    fs.readFile(pageName, function (err, data){                              //read our index html and initiate callback function that will check for 500 error or will  
                                                 if (err){                            //additionally it is best practice to wrap asynchronous calls with your own callback functions
                                                     res.writeHead(500);                           //error encountered (internal server error)
                                                     return res.end('Unable to load index.html');      //tell the user about it

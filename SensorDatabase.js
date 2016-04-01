@@ -48,10 +48,6 @@ exports.dbClose = function closeDB(){
     db.close(); //close our db
 }
 
-//db.each("SELECT * FROM Temperature WHERE id BETWEEN 1 and 5", function(err, row) {
-//         console.log(row.id + " : " + row.time + " : " + row.value);
-//});
-
 //Developer notes:
 //Resources:
 //https://github.com/mapbox/node-sqlite3
