@@ -63,13 +63,17 @@ io.sockets.on('connection', function (socket){             //list of functions w
     socket.on('moveLServo', moveLServo);                //call moveLServo method and pass toggleLServo value from client
     socket.on('moveTServo', moveTServo);                 //call moveTServo method with toggleTServo value from client
     socket.on('setTimer', settimerInterval);             //the following setInterval method runs continuous on socket connection where it continuously monitors sensors and updates when it detects change
-    socket.on('database', function (dbLow, dbHigh, dbType){          //anonymous function for our database query
+    socket.on('database', function (dbLow, dbHigh, dbType, qType){          //anonymous function for our database query
         console.log("in database");        //remove 120 seconds (allow user to set this in the future) this is the range of the data returned
         database.dbnewGrab(function callback(err, tempResult2){
             dataTest2 = tempResult2;
-            convertOutput(dataTest2);
-            socket.emit('dataReturn', JSON.stringify(dataTest2))
-        }, dbType, dbType, dbType, dbLow, dbHigh);
+            var dbTimeReturn = convertOutput(dataTest2, 1);
+            var dbValueReturn = convertOutput(dataTest2, 2);
+            var dbnonStringTime = convertOutput(dataTest2, 3);
+            console.log(dbTimeReturn.time[5]);
+            console.log(dbValueReturn);
+            socket.emit('dataReturn', dbnonStringTime, dbValueReturn, dbType, dbTimeReturn); //format: time in int array format, values associate with time array, time array converted into string format 
+        }, dbType, qType, dbLow, dbHigh);
         /*
         database.dbGrab(function callback(err, tempResult){     //provide an anonymous callback function to our database query function, results in tempResult, this will be called once query is completed
         dataTest = tempResult;                                   //move our db.Grab data into our holder variable
@@ -94,6 +98,8 @@ io.sockets.on('connection', function (socket){             //list of functions w
 
 setInterval(function logData(){         //log data independent of whether there is a socket connection
     var tempforDB = tempMonitor.temp();      //grab temp reading
+    tempforDB = (tempforDB - 500) / 10;     //in celcius
+    tempforDB = (tempforDB * 9/5) + 32;
     var lightforDB = lightMonitor.light();      //grab light reading
     database.dbInsert(1, grabTime(), tempforDB);        //insert temp
     database.dbInsert(2, grabTime(), lightforDB);        //insert light
@@ -123,30 +129,56 @@ function grabTime(){// lets grab the time and return it as a large integer value
     return integerTime; //our 14 digit time integer
 }
 
-function readdbInput(frontendObject){
-    dbLow = frontendObject.dLow;
-    dbHigh = frontendObject.dHigh;
-    dbType = frontendObject.dType;
-    console.log(frontendObject.dLow);
-    console.log(frontendObject.dHigh);
-    console.log(frontendObject.dType);
+function converTime(intTime){
+    var timeString;
+    var dayMarker = 0;
+    var intTime1 = intTime % 1000000; // hourminutesecond
+    var returnedHour = Math.floor(intTime1/10000);
+        if(returnedHour > 12){
+            returnedHour = returnedHour - 12;
+            dayMarker = 1;
+        }
+    var intTime2 = intTime % 10000;
+    var returnedMinute = Math.floor(intTime2/100);
+    var returnedSecond = intTime % 100;
+    if (dayMarker == 0){
+        timeString = returnedHour + ' : ' + returnedMinute + ' : ' + returnedSecond + ' AM'
+    }
+    else if (dayMarker == 1){
+        timeString = returnedHour + ' : ' + returnedMinute + ' : ' + returnedSecond + ' PM'
+    }
+    return timeString;
 }
 
-function convertOutput(inputArray){
-    var outputClass = function(){
-        this.name='';
-        this.time = [];
+function convertOutput(inputArray, field){
+    var outClass = function(){
+        if (field === 1 || field === 3 ){
+            this.time = [];
+        }
+        if (field === 2){
+            this.value = [];
+        }
     };
 
-    var output = new outputClass();
+    var outArray = new outClass();
 
-    //And here I populate its array with the input received from the sensors.
-    for(var x=0; x< inputArray.length; x++){
-        var sensorOutputLine = inputArray[x];
-        var currentTime = sensorOutputLine.time;
-        output.time.push(currentTime); //Push the item into the time[] array
+    for(var x = 0; x < inputArray.length; x++){
+        var outLine = inputArray[x];
+        if (field === 1){
+            var currentTime = outLine.time;
+            var newTime = converTime(currentTime);
+            outArray.time.push(newTime);
+        }
+        if (field === 2){
+            var currentValue = outLine.value;
+            outArray.value.push(currentValue);            
+        }
+        if (field === 3){
+            var currentTime3 = outLine.time;
+            outArray.time.push(currentTime3);
+        }
     }
-    console.log(output);
+    return outArray;
     
 }
 
@@ -196,7 +228,7 @@ function serverClose(){
 //http://danielnill.com/nodejs-tutorial-with-socketio/
 //http://nodecasts.net/episodes/5-thinking-asynchronously
 //http://stackoverflow.com/questions/18692536/node-js-server-close-event-doesnt-appear-to-fire
-
+//http://stackoverflow.com/questions/36670966/turning-array-of-json-objects-into-an-array-for-highcharts-googlecharts
 //listener function handles all incoming requests after the creation of the server -- the function uses readFile to read the entire html page and to return it
 
 //3/3/2016 - we may want to not use an anonymous function for our setinterval call - need to fix imported sensor modules

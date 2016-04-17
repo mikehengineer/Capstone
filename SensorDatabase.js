@@ -44,59 +44,30 @@ exports.dbGrab = function grabDB(callback, type, lowRange, highRange){ //lets cr
     });
 }
 
-exports.dbnewGrab = function dbnewGrab(callback2, type, field, variable, lowRange, highRange){
+exports.dbnewGrab = function dbnewGrab(callback2, type, field, lowRange, highRange){
     db.serialize(function(){
         if(type == 1){
             if(field == 1){
-                    if(variable == 1){
-                        db.all("SELECT time FROM Temperature WHERE time BETWEEN ? and ?", lowRange, highRange, function(err,all){
+                        db.all("SELECT time, value FROM Temperature WHERE time BETWEEN ? and ?", lowRange, highRange, function(err,all){
                             callback2(err,all);
                         });
-                    }
-                    else if (variable == 2){
-                        db.all("SELECT time FROM Temperature WHERE value BETWEEN ? and ?", lowRange, highRange, function(err,all){
-                             callback2(err,all);
-                        });
-                    }
             }
-        
             else if (field == 2){
-                    if(variable == 1){
-                        db.all("SELECT value FROM Temperature WHERE time BETWEEN ? and ?", lowRange, highRange, function(err,all){
+                        db.all("SELECT value, time FROM Temperature WHERE value BETWEEN ? and ?", lowRange, highRange, function(err,all){
                             callback2(err,all);
                         });
-                    }
-                    else if (variable == 2){
-                        db.all("SELECT value FROM Temperature WHERE value BETWEEN ? and ?", lowRange, highRange, function(err,all){
-                             callback2(err,all);
-                        });
-                    }
             }
         }
         if(type == 2){
             if(field == 1){
-                    if(variable == 1){
-                        db.all("SELECT time FROM Light WHERE time BETWEEN ? and ?", lowRange, highRange, function(err,all){
+                        db.all("SELECT time, value FROM Light WHERE time BETWEEN ? and ?", lowRange, highRange, function(err,all){
                             callback2(err,all);
                         });
-                    }
-                    else if (variable == 2){
-                        db.all("SELECT time FROM Light WHERE value BETWEEN ? and ?", lowRange, highRange, function(err,all){
-                             callback2(err,all);
-                        });
-                    }
             }
             else if (field == 2){
-                    if(variable == 1){
-                        db.all("SELECT value FROM Light WHERE time BETWEEN ? and ?", lowRange, highRange, function(err,all){
+                        db.all("SELECT value, time FROM Light WHERE value BETWEEN ? and ?", lowRange, highRange, function(err,all){
                             callback2(err,all);
                         });
-                    }
-                    else if (variable == 2){
-                        db.all("SELECT value FROM Light WHERE value BETWEEN ? and ?", lowRange, highRange, function(err,all){
-                             callback2(err,all);
-                        });
-                    }
             }
         }
     });

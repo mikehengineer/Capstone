@@ -13,14 +13,19 @@
     socket.on("light", lightUpdate);
     socket.on("dataReturn", updateDatabaseView);
     var returnedData2;
-    
-    
+
     function tempUpdate(temp){
         console.log("In TempUpdate");
         var input = JSON.parse(temp);       //read the input from tempUpdate with JSON this should be an object with a temp field
         var newTemp = input.temp;            //get the temp field
         var celcius = (newTemp - 500) / 10;   //celcius calculation
         var fahrenheit = (celcius * 9/5) + 32;  //fahrenheit calculation
+            fahrenheit = fahrenheit * 1000;
+        var fTrim = fahrenheit % 10;
+            fahrenheit = (fahrenheit-fTrim)/1000;
+            celcius = celcius * 1000;
+        var cTrim = celcius % 10;
+            celcius = (celcius - cTrim)/1000;
         $("#temperaturef").html(" " + fahrenheit + " F");   //use Jquery to change the temperaturef DOM
         $("#temperaturec").html(" " + celcius + " C");      //use Jquery to change the temperaturec DOM
     }
@@ -30,13 +35,115 @@
         var newLight = input.light;         //get the light field
         $("#lightlevel").html(" " + newLight);  //use Jquery to change the lightlevel DOM
     }
+    function returnMonth(yearEntry){
+                    var returnedMonth;
+                    switch(yearEntry){
+                        case 1:
+                            returnedMonth = 'January';
+                        break;
+                        case 2:
+                            returnedMonth = 'February';
+                        break;
+                        case 3:
+                            returnedMonth = 'March';
+                        break;
+                        case 4:
+                            returnedMonth = 'April';
+                        break;
+                        case 5:
+                            returnedMonth = 'May';
+                        break;
+                        case 6:
+                            returnedMonth = 'June';
+                        break;
+                        case 7:
+                            returnedMonth = 'July';
+                        break;
+                        case 8:
+                            returnedMonth = 'August';
+                        break;
+                        case 9:
+                            returnedMonth = 'September';
+                        break;
+                        case 10:
+                            returnedMonth = 'October';
+                        break;
+                        case 11:
+                            returnedMonth = 'November';
+                        break;
+                        case 12:
+                            returnedMonth = 'December';
+                        break;
+                        default:
+                            returnedMonth = 'January';
+                        break;
+                    }
+                return returnedMonth;
+    }
     
-    function updateDatabaseView(returnedData){
-        //var testReturn = JSON.parse(returnedData);
-        //var testReturn2 = testReturn.light;
-        returnedData2 = returnedData;
+    function updateDatabaseView(returnedData1, returnedData2, chartType, dbStringArray){
+        var chartMonth1;
+        var chartMonth2;
+        var returnedData3 = returnedData1;
+        var returnedData4 = returnedData2;
+        var chartSub;
+        var charTitle;
+        var lastEntry = returnedData1.time.length - 1;
+            var Year1 = Math.floor(returnedData1.time[0]/10000000000);
+            var Month1 = Math.floor(returnedData1.time[0]/100000000);
+                Month1 = Month1 % 100;
+            var Day1 = Math.floor(returnedData1.time[0]/1000000);
+                Day1 = Day1 % 100;
+            var Year2 = Math.floor(returnedData1.time[lastEntry]/10000000000);
+            var Month2 = Math.floor(returnedData1.time[lastEntry]/100000000);
+                Month2 = Month2 % 100;
+            var Day2 = Math.floor(returnedData1.time[lastEntry]/1000000);
+                Day2 = Day2 % 100;
+            chartMonth1 = returnMonth(Month1);
+            chartMonth2 = returnMonth(Month2);
+            if(chartType == 1){
+                chartSub = 'Temperature'
+            }
+            else if (chartType == 2){
+                chartSub = 'Light'
+            }
+            function titleString(){
+                if (chartMonth1 == chartMonth2){
+                    charTitle = Day1 + ' ' + chartMonth1 + ' ' + Year1
+                }
+                else{
+                    charTitle = Day1 + ' ' + chartMonth1 + ' ' + Year1 + ' - ' + Day2 + ' ' + chartMonth2 + ' ' + Year2
+                }
+            }
+            titleString();
         
-    $("#databaseReturn").html(" " + returnedData2);
+        //$("#chartStatus").html(" " + returnedData3.time + " " + returnedData4.value);
+        $(function () {
+            $('#container').highcharts({
+                title: {
+                    text: charTitle
+                },
+
+                subtitle: {
+                    text: chartSub
+                },
+                yAxis: {
+                    title: {
+                        text: 'Temperature'
+                    }
+                },
+                xAxis: {
+                    title: {
+                        text: 'Time Hr : Min : Sec'
+                    },
+                    categories: dbStringArray.time
+                },
+
+                series: [{
+                    data: returnedData4.value
+                }]
+            });
+        });
     }
     </script>
 </head>
@@ -63,18 +170,14 @@
     </p>
     <input type="textbox" id="dbHigh" value="Enter chart lowrange" onfocus="if (this.value=='Enter an angle') this.value ='';"/>
     </p>
+    <input type="textbox" id="dbqType" value="Temp or Light Range" onfocus="if (this.value=='Enter an angle') this.value ='';"/>
+    </p>
     <input type="textbox" id="dbType" value="Type temp or light for type of graph:" onfocus="if (this.value=='Enter an angle') this.value ='';"/>
     </p>
     <button onclick="generateChart()">Generate Chart</button>
     </p>
-    <h1 style="font-size:50pt;">Chart Status:</h1>
-    <h2 style="font-size:25pt;"id="chartStatus">-</h2>
-    
-    
-    
-    
-    <h2 style="font-size:15pt;"id="databaseReturn">new</h2>
-    <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+    <h2 style="font-size:15pt;"id="databaseReturn"></h2>
+    <div id="container" style="height: 400px"></div>
     <script>
 
        
@@ -89,23 +192,11 @@
             socket.emit('moveLServo', newlAngle);
         }
         function generateChart(){
-            	var dLow = document.getElementById("dbLow").value;
-            	var dHigh = document.getElementById("dbHigh").value;
-            	var dType = document.getElementById("dbType").value;
-            	/* var databasePayload = function(){
-            	   this.dLow = -1;
-                   this.dHigh = -1;
-                   this.dType = -1;
-                };
-                var databaseInit = new databasePayload();
-                   databaseInit.dLow = document.getElementById("dbLow").value;
-                   databaseInit.dHigh = document.getElementById("dbHigh").value;
-                   databaseInit.dType = document.getElementById("dbType").value;
-                if (databaseInit.dLow < 0 || databaseInit.dHigh < 0 || database.dType < 0){
-                     $("#chartStatus").html("ERROR: Please enter valid chart parameters.  All fields should be 0 or greater");
-                }
-                else{ */
-                    socket.emit('database', dLow, dHigh, dType);   
+            var dLow = document.getElementById("dbLow").value;
+        	var dHigh = document.getElementById("dbHigh").value;
+        	var dType = document.getElementById("dbType").value;
+        	var qType = document.getElementById("dbqType").value;
+            socket.emit('database', dLow, dHigh, dType, qType);   
                 
         }
         
