@@ -13,6 +13,7 @@ var tempMonitor = require('./Temperature.js');
 var tempServo = require('./TempServoControl.js');
 var lightServo = require('./LightServoControl.js');
 var url = require('url');
+var jQuery = require('/root/node_modules/jquery')
 
 var Temp;
 var tempHolder;     //variable to compare temp level
@@ -25,6 +26,11 @@ http.listen(port);      //start listening on port 9090
 database.dbRun();       //start our database
 
 console.log("Home Automation Webserver Started!");
+
+var dbLow;
+var dbHigh;
+var dbType;
+var dataTest2;
 
 function listener(req, res){
     var urlPath = url.parse(req.url).pathname;
@@ -57,13 +63,19 @@ io.sockets.on('connection', function (socket){             //list of functions w
     socket.on('moveLServo', moveLServo);                //call moveLServo method and pass toggleLServo value from client
     socket.on('moveTServo', moveTServo);                 //call moveTServo method with toggleTServo value from client
     socket.on('setTimer', settimerInterval);             //the following setInterval method runs continuous on socket connection where it continuously monitors sensors and updates when it detects change
-    socket.on('database', function (timePosition){          //anonymous function for our database query
-        var timePositionOffset = timePosition - 120;        //remove 120 seconds (allow user to set this in the future) this is the range of the data returned
-        var dataTest;                                           //declare our variable to hold our database results
+    socket.on('database', function (dbLow, dbHigh, dbType){          //anonymous function for our database query
+        console.log("in database");        //remove 120 seconds (allow user to set this in the future) this is the range of the data returned
+        database.dbnewGrab(function callback(err, tempResult2){
+            dataTest2 = tempResult2;
+            convertOutput(dataTest2);
+            socket.emit('dataReturn', JSON.stringify(dataTest2))
+        }, dbType, dbType, dbType, dbLow, dbHigh);
+        /*
         database.dbGrab(function callback(err, tempResult){     //provide an anonymous callback function to our database query function, results in tempResult, this will be called once query is completed
         dataTest = tempResult;                                   //move our db.Grab data into our holder variable
+        console.log(JSON.stringify(dataTest));
         socket.emit('dataReturn', JSON.stringify(dataTest));      //once our query is complete and our data held in our holder variable, emit the holder variable over the socket, data will be an array of JSON objects
-        }, 1, timePositionOffset, timePosition);                //the input to dbGrab, declared after our anonymous callback above, this corresponds to type (1 for temp 2 for light), lowerRange, highRange
+        }, 1, timePositionOffset, timePosition); */               //the input to dbGrab, declared after our anonymous callback above, this corresponds to type (1 for temp 2 for light), lowerRange, highRange
     });
     setInterval(function(){                 //perform this on a regular interval, this will continously update our webpage with current temp and light values
         tempHolder = tempMonitor.temp();          //check current temp
@@ -110,6 +122,34 @@ function grabTime(){// lets grab the time and return it as a large integer value
     
     return integerTime; //our 14 digit time integer
 }
+
+function readdbInput(frontendObject){
+    dbLow = frontendObject.dLow;
+    dbHigh = frontendObject.dHigh;
+    dbType = frontendObject.dType;
+    console.log(frontendObject.dLow);
+    console.log(frontendObject.dHigh);
+    console.log(frontendObject.dType);
+}
+
+function convertOutput(inputArray){
+    var outputClass = function(){
+        this.name='';
+        this.time = [];
+    };
+
+    var output = new outputClass();
+
+    //And here I populate its array with the input received from the sensors.
+    for(var x=0; x< inputArray.length; x++){
+        var sensorOutputLine = inputArray[x];
+        var currentTime = sensorOutputLine.time;
+        output.time.push(currentTime); //Push the item into the time[] array
+    }
+    console.log(output);
+    
+}
+
 function settimerInterval(newInterval){
     updateInterval = newInterval;     //user specified interval
 }

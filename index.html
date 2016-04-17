@@ -1,13 +1,20 @@
 <html>
 <head>
+    <link rel="stylesheet" href="bootstrap.css">
     <script src = "/socket.io/socket.io.js" > </script>
     <script type=text/javascript src="https://code.jquery.com/jquery-1.12.1.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <script>
+
+    
     var socket = io.connect();
     socket.on("temp", tempUpdate);        //call function to update temperature value
     socket.on("light", lightUpdate);
     socket.on("dataReturn", updateDatabaseView);
-
+    var returnedData2;
+    
+    
     function tempUpdate(temp){
         console.log("In TempUpdate");
         var input = JSON.parse(temp);       //read the input from tempUpdate with JSON this should be an object with a temp field
@@ -27,7 +34,9 @@
     function updateDatabaseView(returnedData){
         //var testReturn = JSON.parse(returnedData);
         //var testReturn2 = testReturn.light;
-        $("#databaseReturn").html(" " + returnedData);
+        returnedData2 = returnedData;
+        
+    $("#databaseReturn").html(" " + returnedData2);
     }
     </script>
 </head>
@@ -48,11 +57,27 @@
     <button onclick="moveLightServo()">Move Servo</button>
     </p>
     
-    Generate Database Query (Time -20 Seconds): <button onclick="getDatabaseInfo()">Generate</button>
+    Chart Services:
     </p>
+    <input type="textbox" id="dbLow" value="Enter chart lowrange" onfocus="if (this.value=='Enter an angle') this.value ='';"/>
+    </p>
+    <input type="textbox" id="dbHigh" value="Enter chart lowrange" onfocus="if (this.value=='Enter an angle') this.value ='';"/>
+    </p>
+    <input type="textbox" id="dbType" value="Type temp or light for type of graph:" onfocus="if (this.value=='Enter an angle') this.value ='';"/>
+    </p>
+    <button onclick="generateChart()">Generate Chart</button>
+    </p>
+    <h1 style="font-size:50pt;">Chart Status:</h1>
+    <h2 style="font-size:25pt;"id="chartStatus">-</h2>
+    
+    
+    
     
     <h2 style="font-size:15pt;"id="databaseReturn">new</h2>
+    <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
     <script>
+
+       
         function moveTempServo(){
             var tAngle = document.getElementById("tempA").value;
             var newtAngle = tAngle/10;
@@ -63,9 +88,25 @@
             var newlAngle = lAngle/10;
             socket.emit('moveLServo', newlAngle);
         }
-        function getDatabaseInfo(){
-            var timeHolder = grabTime();
-            socket.emit('database', timeHolder);
+        function generateChart(){
+            	var dLow = document.getElementById("dbLow").value;
+            	var dHigh = document.getElementById("dbHigh").value;
+            	var dType = document.getElementById("dbType").value;
+            	/* var databasePayload = function(){
+            	   this.dLow = -1;
+                   this.dHigh = -1;
+                   this.dType = -1;
+                };
+                var databaseInit = new databasePayload();
+                   databaseInit.dLow = document.getElementById("dbLow").value;
+                   databaseInit.dHigh = document.getElementById("dbHigh").value;
+                   databaseInit.dType = document.getElementById("dbType").value;
+                if (databaseInit.dLow < 0 || databaseInit.dHigh < 0 || database.dType < 0){
+                     $("#chartStatus").html("ERROR: Please enter valid chart parameters.  All fields should be 0 or greater");
+                }
+                else{ */
+                    socket.emit('database', dLow, dHigh, dType);   
+                
         }
         
         function grabTime(){// lets grab the time and return it as a large integer value
