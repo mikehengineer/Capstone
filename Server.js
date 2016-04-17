@@ -19,7 +19,6 @@ var Temp;
 var tempHolder;     //variable to compare temp level
 var Light;
 var lightHolder;    //variable to compare light level
-var updateInterval = 3000;
 
 //create a server that reads in the callback listener function -> write later
 http.listen(port);      //start listening on port 9090
@@ -27,29 +26,8 @@ database.dbRun();       //start our database
 
 console.log("Home Automation Webserver Started!");
 
-var dbLow;
-var dbHigh;
-var dbType;
-var dataTest2;
-
 function listener(req, res){
-    var urlPath = url.parse(req.url).pathname;
-    var pageName;
-    switch(urlPath) {
-        case '/analytics':
-            pageName = 'analytics.html';
-        break;
-        case '/developerbio':
-            pageName = 'developerbio.html';
-        break;
-        case '/project':
-            pageName = 'project.html';
-        break;
-        default:
-            pageName = 'index.html';
-        break;
-    }
-    fs.readFile(pageName, function (err, data){                              //read our index html and initiate callback function that will check for 500 error or will  
+    fs.readFile('index.html', function (err, data){                              //read our index html and initiate callback function that will check for 500 error or will  
                                                 if (err){                            //additionally it is best practice to wrap asynchronous calls with your own callback functions
                                                     res.writeHead(500);                           //error encountered (internal server error)
                                                     return res.end('Unable to load index.html');      //tell the user about it
@@ -62,24 +40,14 @@ function listener(req, res){
 io.sockets.on('connection', function (socket){             //list of functions we will support when a socket is opened via callback
     socket.on('moveLServo', moveLServo);                //call moveLServo method and pass toggleLServo value from client
     socket.on('moveTServo', moveTServo);                 //call moveTServo method with toggleTServo value from client
-    socket.on('setTimer', settimerInterval);             //the following setInterval method runs continuous on socket connection where it continuously monitors sensors and updates when it detects change
-    socket.on('database', function (dbLow, dbHigh, dbType, qType){          //anonymous function for our database query
-        console.log("in database");        //remove 120 seconds (allow user to set this in the future) this is the range of the data returned
+    socket.on('database', function (dbLow, dbHigh, dbType, qType){    
         database.dbnewGrab(function callback(err, tempResult2){
-            dataTest2 = tempResult2;
-            var dbTimeReturn = convertOutput(dataTest2, 1);
-            var dbValueReturn = convertOutput(dataTest2, 2);
-            var dbnonStringTime = convertOutput(dataTest2, 3);
-            console.log(dbTimeReturn.time[5]);
-            console.log(dbValueReturn);
-            socket.emit('dataReturn', dbnonStringTime, dbValueReturn, dbType, dbTimeReturn); //format: time in int array format, values associate with time array, time array converted into string format 
+            var dataTest2 = tempResult2;
+            var dbTimeReturn = convertOutput(dataTest2, 1);     //get an array of time values in string format
+            var dbValueReturn = convertOutput(dataTest2, 2);     //get an array of values     
+            var dbnonStringTime = convertOutput(dataTest2, 3);    //get an array of time values in integer format
+            socket.emit('dataReturn', dbnonStringTime, dbValueReturn, dbType, dbTimeReturn); //format: time in int array format, values associate with time array, type of chart (temp or light), time array converted into string format 
         }, dbType, qType, dbLow, dbHigh);
-        /*
-        database.dbGrab(function callback(err, tempResult){     //provide an anonymous callback function to our database query function, results in tempResult, this will be called once query is completed
-        dataTest = tempResult;                                   //move our db.Grab data into our holder variable
-        console.log(JSON.stringify(dataTest));
-        socket.emit('dataReturn', JSON.stringify(dataTest));      //once our query is complete and our data held in our holder variable, emit the holder variable over the socket, data will be an array of JSON objects
-        }, 1, timePositionOffset, timePosition); */               //the input to dbGrab, declared after our anonymous callback above, this corresponds to type (1 for temp 2 for light), lowerRange, highRange
     });
     setInterval(function(){                 //perform this on a regular interval, this will continously update our webpage with current temp and light values
         tempHolder = tempMonitor.temp();          //check current temp
@@ -92,8 +60,8 @@ io.sockets.on('connection', function (socket){             //list of functions w
                 socket.emit('light', '{"light":"' + lightHolder + '"}');        //emit new light reading
                 Light = lightHolder;            //make new value the established value
             }
-            }
-            ,updateInterval);           //this is the frequency that this callback function is toggled
+    }
+            ,5000);           //this is the frequency that this callback function is toggled
 });
 
 setInterval(function logData(){         //log data independent of whether there is a socket connection
@@ -129,61 +97,56 @@ function grabTime(){// lets grab the time and return it as a large integer value
     return integerTime; //our 14 digit time integer
 }
 
-function converTime(intTime){
-    var timeString;
-    var dayMarker = 0;
-    var intTime1 = intTime % 1000000; // hourminutesecond
-    var returnedHour = Math.floor(intTime1/10000);
-        if(returnedHour > 12){
+function converTime(intTime){   //we will build a tertiary array that is a string representation of our time array - this will allow our x-axis that holds are time values to be human readable  
+    var timeString;     //initialize our time string variable     
+    var dayMarker = 0;  //a flag for any time that has an hour greater than 12 - we will conver to civilian time
+    var intTime1 = intTime % 1000000;   //hourminutesecond this trims everything before the hour digits
+    var returnedHour = Math.floor(intTime1/10000);  //this trims everything after the hour digits
+        if(returnedHour > 12){  //if our hours are after noon, calculate civilian time
             returnedHour = returnedHour - 12;
-            dayMarker = 1;
+            dayMarker = 1; //dayMarker = 1 add PM to our time, 0 add AM
         }
-    var intTime2 = intTime % 10000;
-    var returnedMinute = Math.floor(intTime2/100);
+    var intTime2 = intTime % 10000;     //this is four our minutes
+    var returnedMinute = Math.floor(intTime2/100);      //this follows the hour technique      
     var returnedSecond = intTime % 100;
-    if (dayMarker == 0){
-        timeString = returnedHour + ' : ' + returnedMinute + ' : ' + returnedSecond + ' AM'
+    if (dayMarker == 0){    
+        timeString = returnedHour + ' : ' + returnedMinute + ' : ' + returnedSecond + ' AM'     //build our before noon string
     }
     else if (dayMarker == 1){
-        timeString = returnedHour + ' : ' + returnedMinute + ' : ' + returnedSecond + ' PM'
+        timeString = returnedHour + ' : ' + returnedMinute + ' : ' + returnedSecond + ' PM'     //build our after noon string
     }
-    return timeString;
+    return timeString; //return the resulting string should be hr : min : sec AM/PM
 }
 
-function convertOutput(inputArray, field){
+function convertOutput(inputArray, field){      //we need to turn the array of objects returned by the database into a normal array that HighCharts can read
     var outClass = function(){
-        if (field === 1 || field === 3 ){
+        if (field === 1 || field === 3 ){       //if we are building our time array or our string time array we will create a time array in our object
             this.time = [];
         }
-        if (field === 2){
+        if (field === 2){       //if we are building our value array we will initialize a value array
             this.value = [];
         }
     };
 
-    var outArray = new outClass();
+    var outArray = new outClass();      //create an instance of our outClass function
 
-    for(var x = 0; x < inputArray.length; x++){
+    for(var x = 0; x < inputArray.length; x++){  //loop our input array
         var outLine = inputArray[x];
-        if (field === 1){
-            var currentTime = outLine.time;
-            var newTime = converTime(currentTime);
-            outArray.time.push(newTime);
+        if (field === 1){       //if we are building time string array
+            var currentTime = outLine.time;     //copy the time from our original array
+            var newTime = converTime(currentTime);  //feed it to our string converting function
+            outArray.time.push(newTime);    //push string onto our new array
         }
-        if (field === 2){
+        if (field === 2){       //if building value array
             var currentValue = outLine.value;
-            outArray.value.push(currentValue);            
+            outArray.value.push(currentValue);  //extract and push our value onto new array
         }
-        if (field === 3){
+        if (field === 3){       //if building integer time array - we need integer time array so that we can build our chart titles, these functions will rely on integer comparison calculations
             var currentTime3 = outLine.time;
-            outArray.time.push(currentTime3);
+            outArray.time.push(currentTime3);  //extract and push our value onto new array
         }
     }
-    return outArray;
-    
-}
-
-function settimerInterval(newInterval){
-    updateInterval = newInterval;     //user specified interval
+    return outArray;    //return our HighCharts friendly array
 }
 
 function moveLServo(pulseL){

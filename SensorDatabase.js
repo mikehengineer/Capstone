@@ -46,26 +46,26 @@ exports.dbGrab = function grabDB(callback, type, lowRange, highRange){ //lets cr
 
 exports.dbnewGrab = function dbnewGrab(callback2, type, field, lowRange, highRange){
     db.serialize(function(){
-        if(type == 1){
+        if(type == 1){  //if Temp table
             if(field == 1){
-                        db.all("SELECT time, value FROM Temperature WHERE time BETWEEN ? and ?", lowRange, highRange, function(err,all){
+                        db.all("SELECT time, value FROM Temperature WHERE time BETWEEN ? and ?", lowRange, highRange, function(err,all){ //if selecting a temp range
                             callback2(err,all);
                         });
             }
             else if (field == 2){
-                        db.all("SELECT value, time FROM Temperature WHERE value BETWEEN ? and ?", lowRange, highRange, function(err,all){
+                        db.all("SELECT value, time FROM Temperature WHERE value BETWEEN ? and ?", lowRange, highRange, function(err,all){ //if selecting a value range
                             callback2(err,all);
                         });
             }
         }
-        if(type == 2){
+        if(type == 2){  //if Light table
             if(field == 1){
-                        db.all("SELECT time, value FROM Light WHERE time BETWEEN ? and ?", lowRange, highRange, function(err,all){
+                        db.all("SELECT time, value FROM Light WHERE time BETWEEN ? and ?", lowRange, highRange, function(err,all){ //if selecting a temp range
                             callback2(err,all);
                         });
             }
             else if (field == 2){
-                        db.all("SELECT value, time FROM Light WHERE value BETWEEN ? and ?", lowRange, highRange, function(err,all){
+                        db.all("SELECT value, time FROM Light WHERE value BETWEEN ? and ?", lowRange, highRange, function(err,all){ //if selecting a value range
                             callback2(err,all);
                         });
             }
