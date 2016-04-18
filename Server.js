@@ -13,7 +13,7 @@ var tempMonitor = require('./Temperature.js');
 var tempServo = require('./TempServoControl.js');
 var lightServo = require('./LightServoControl.js');
 var url = require('url');
-var jQuery = require('/root/node_modules/jquery')
+var path = require('path');
 
 var Temp;
 var tempHolder;     //variable to compare temp level
@@ -26,17 +26,53 @@ database.dbRun();       //start our database
 
 console.log("Home Automation Webserver Started!");
 
-function listener(req, res){
-    fs.readFile('index.html', function (err, data){                              //read our index html and initiate callback function that will check for 500 error or will  
-                                                if (err){                            //additionally it is best practice to wrap asynchronous calls with your own callback functions
-                                                    res.writeHead(500);                           //error encountered (internal server error)
-                                                    return res.end('Unable to load index.html');      //tell the user about it
-                                                }
-                                                res.writeHead(200);                                  //everything went ok - no errors
-                                                res.end(data);                                    //return the contents of our html
-                                                }
-)}
-    
+function listener(req, res) {
+    var urlPath = url.parse(req.url).pathname; //get our url path and parse
+    var lastFinder = urlPath.lastIndexOf("."); //find the last period
+    var fileExt = urlPath.substring(lastFinder + 1); //file extension exists once place past the .
+    urlPath = urlPath.substr(1);
+    var filename = path.join(process.cwd(), urlPath);
+    fs.exists(filename, function(exists) {      //call file exists and put our response implementation inside the call back
+        var pageName;
+        if (exists && urlPath != '') {
+            pageName = urlPath;
+        }
+        else {
+            pageName = 'index.html';
+        }
+        fs.readFile(pageName, function(err, data) { //read the file if it exists and return the correct header type 
+            if (err) {                             
+                res.writeHead(500);                 //error encountered (internal server error)
+                return res.end('Unable to load index.html');     //tell the user about it
+            }
+            else {                                  //here we set the file extensions and write them to the header
+                if (fileExt === 'html') res.writeHead(200, {
+                    "Content-Type": 'text/html'
+                });
+                else if (fileExt === 'htm') res.writeHead(200, {
+                    "Content-Type": 'text/html'
+                });
+                else if (fileExt === 'css') res.writeHead(200, {
+                    "Content-Type": 'text/css'
+                });
+                else if (fileExt === 'js') res.writeHead(200, {
+                    "Content-Type": 'text/javascript'
+                });
+                else if (fileExt === 'png') res.writeHead(200, {
+                    "Content-Type": 'image/png'
+                });
+                else if (fileExt === 'jpg') res.writeHear(200, {
+                    "Content-Type": 'image/jpg'
+                });
+                else if (fileExt === 'jpeg') res.writeHead(200, {
+                    "Content-Type": 'image/jpeg'
+                })
+                res.end(data); //return the contents of our html
+            }
+        })
+    })
+}
+
 io.sockets.on('connection', function (socket){             //list of functions we will support when a socket is opened via callback
     socket.on('moveLServo', moveLServo);                //call moveLServo method and pass toggleLServo value from client
     socket.on('moveTServo', moveTServo);                 //call moveTServo method with toggleTServo value from client
@@ -71,7 +107,7 @@ setInterval(function logData(){         //log data independent of whether there 
     var lightforDB = lightMonitor.light();      //grab light reading
     database.dbInsert(1, grabTime(), tempforDB);        //insert temp
     database.dbInsert(2, grabTime(), lightforDB);        //insert light
-}, 4000);       //log data interval
+}, 60000);       //log data interval
 
 function grabTime(){// lets grab the time and return it as a large integer value
     var time = new Date();
@@ -99,7 +135,7 @@ function grabTime(){// lets grab the time and return it as a large integer value
 
 function converTime(intTime){   //we will build a tertiary array that is a string representation of our time array - this will allow our x-axis that holds are time values to be human readable  
     var timeString;     //initialize our time string variable     
-    var dayMarker = 0;  //a flag for any time that has an hour greater than 12 - we will conver to civilian time
+    var dayMarker = 0;  //a flag for any time that has an hour greater than 12 - we will convert to civilian time
     var intTime1 = intTime % 1000000;   //hourminutesecond this trims everything before the hour digits
     var returnedHour = Math.floor(intTime1/10000);  //this trims everything after the hour digits
         if(returnedHour > 12){  //if our hours are after noon, calculate civilian time
@@ -130,7 +166,7 @@ function convertOutput(inputArray, field){      //we need to turn the array of o
 
     var outArray = new outClass();      //create an instance of our outClass function
 
-    for(var x = 0; x < inputArray.length; x++){  //loop our input array
+    for (var x = 0; x < inputArray.length; x++){  //loop our input array
         var outLine = inputArray[x];
         if (field === 1){       //if we are building time string array
             var currentTime = outLine.time;     //copy the time from our original array
