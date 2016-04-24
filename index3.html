@@ -11,9 +11,19 @@
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <script src="../js/bootstrap.min.js"></script>
-    <link href="../css/starter-template.css" rel="stylesheet">
+    <link href="../css/tester.css" rel="stylesheet">
 
     <script>
+        $(function() {
+            $('#navbar a').click(function() {
+                $('#navbar a').css('font-weight', 'normal');
+                $('#navbar a').css('color', '#cce5ff');
+                $('#navbar a').css('font-size', '20');
+                $(this).css('font-size', '24');
+                $(this).css('font-weight', 'bold');
+                $(this).css('color', '#0099FF');
+            });
+        });
         var socket = io.connect();
         socket.on("temp", tempUpdate); //call function to update temperature value
         socket.on("light", lightUpdate);
@@ -139,7 +149,7 @@
             titleString();
 
             $(function() {
-                $('#container').highcharts({
+                $('#chartContainer').highcharts({
                     title: {
                         text: charTitle
                     },
@@ -176,76 +186,89 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="#">Internet Home</a>
+    <div class="container" id="Status">
+        <div class="container" id="Analysis">
+            <div class="container" id="Developer">
+                <div class="container" id="Repository">
+                    <div class="container" id="Contact">
+                        <nav class="navbar navbar-inverse navbar-fixed-top"  id="ct6">
+                            <div class="container">
+                                <div class="navbar-header">
+                                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                                        <span class="sr-only">Toggle navigation</span>
+                                        <span class="icon-bar"></span>
+                                        <span class="icon-bar"></span>
+                                        <span class="icon-bar"></span>
+                                    </button>
+                                    <a class="navbar-brand" id="navbarbrand">Internet Home</a>
+                                </div>
+                                <div id="navbar" class="collapse navbar-collapse">
+                                    <ul class="nav navbar-nav">
+                                        <li class="button" id="1"><a href="#Status">Status</a></li>
+                                        <li class="button" id="2"><a href="#Analysis">Analysis</a></li>
+                                        <li class="button" id="3"><a href="#Developer">Developer</a></li>
+                                        <li class="button" id="4"><a href="#Repository">Repository</a></li>
+                                        <li class="button" id="5"><a href="#Contact">Contact</a></li>
+                                    </ul>
+                                </div>
+                                <!--/.nav-collapse -->
+                            </div>
+                        </nav>
+                        <div class="page" id="page1">
+                            <div class="statusOne">
+                            <h1 style="font-size:25pt;">Temperature (Fahrenheit)</h1>
+                            <h2 style="font-size:15pt;" id="temperaturef"></h2>
+                            <h1 style="font-size:25pt;">Temperature (Celcius)</h1>
+                            <h2 style="font-size:15pt;" id="temperaturec"></h2>
+                            <h1 style="font-size:25pt;">Current Light Level</h1>
+                            <h2 style="font-size:15pt;" id="lightlevel"></h2>
+                            </p>
+                            </p>
+                            Temperature Servo Angle (1-10):
+                            <input type="textbox" id="tempA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';" />
+                            <button onclick="moveTempServo()">Move Servo</button>
+                            </p>
+
+                            Light Servo Angle (1-10):
+                            <input type="textbox" id="lightA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';" />
+                            <button onclick="moveLightServo()">Move Servo</button>
+                            </p>
+                            </p>
+                            </div> <!-- inner div to page one -->
+                        </div>
+                        <div class="page" id="page2">
+                            Chart Services:
+                            </p>
+                            <input type="textbox" id="dbLow" value="Enter chart lowrange" onfocus="if (this.value=='Enter an angle') this.value ='';" />
+                            </p>
+                            <input type="textbox" id="dbHigh" value="Enter chart lowrange" onfocus="if (this.value=='Enter an angle') this.value ='';" />
+                            </p>
+                            <input type="textbox" id="dbqType" value="Temp or Light Range" onfocus="if (this.value=='Enter an angle') this.value ='';" />
+                            </p>
+                            <input type="textbox" id="dbType" value="Type temp or light for type of graph:" onfocus="if (this.value=='Enter an angle') this.value ='';" />
+                            </p>
+                            </p>
+                            <button onclick="generateChart()">Generate Chart</button>
+                            </p>
+                            <h2 style="font-size:25pt;" id="errorflag"></h2>
+                            </p>
+                            <div id="chartContainer" style="height: 400px"></div>
+                        </div>
+                        <div class="page" id="page3">
+                            <h1 style="font-size:25pt;">This is page 3</h1>
+                        </div>
+                        <div class="page" id="page4">
+                            <h1 style="font-size:25pt;">This is page 4</h1>
+                        </div>
+                        <div class="page" id="page5">
+                            <h1 style="font-size:25pt;">This is page 5</h1>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id="navbar" class="collapse navbar-collapse">
-                <ul class="nav navbar-nav">
-                    <li class="active"><a href="#">Status</a></li>
-                    <li><a href="#analysis">Analysis</a></li>
-                    <li><a href="#developer">Developer</a></li>
-                    <li><a href="#bitbucket">Repository</a></li>
-                    <li><a href="#contact">Contact</a></li>
-                </ul>
-            </div>
-            <!--/.nav-collapse -->
         </div>
-    </nav>
-
-    <div id="container1" class="container">
-
-        <div class="starter-template">
-            <h1>Status</h1>
-            <p class="lead">Front end in progress. </p>
-        </div>
-
     </div>
-    <!-- /.container -->
-
-    <h1 style="font-size:25pt;">Temperature (Fahrenheit)</h1>
-    <h2 style="font-size:15pt;" id="temperaturef"></h2>
-    <h1 style="font-size:25pt;">Temperature (Celcius)</h1>
-    <h2 style="font-size:15pt;" id="temperaturec"></h2>
-    <h1 style="font-size:25pt;">Current Light Level</h1>
-    <h2 style="font-size:15pt;" id="lightlevel"></h2>
-    </p>
-    </p>
-
-    Temperature Servo Angle (1-10):
-    <input type="textbox" id="tempA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-    <button onclick="moveTempServo()">Move Servo</button>
-    </p>
-
-    Light Servo Angle (1-10):
-    <input type="textbox" id="lightA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-    <button onclick="moveLightServo()">Move Servo</button>
-    </p>
-    </p>
-
-    Chart Services:
-    </p>
-    <input type="textbox" id="dbLow" value="Enter chart lowrange" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-    </p>
-    <input type="textbox" id="dbHigh" value="Enter chart lowrange" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-    </p>
-    <input type="textbox" id="dbqType" value="Temp or Light Range" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-    </p>
-    <input type="textbox" id="dbType" value="Type temp or light for type of graph:" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-    </p>
-    </p>
-    <button onclick="generateChart()">Generate Chart</button>
-    </p>
-    <h2 style="font-size:25pt;" id="errorflag"></h2>
-    </p>
-    <div id="container" style="height: 400px"></div>
+    </div>
     <script>
         function moveTempServo() {
             var tAngle = document.getElementById("tempA").value;

@@ -2,6 +2,12 @@ body {
   padding-top: 50px;
 }
 .starter-template {
-  padding: 40px 15px;
+  padding: 100px 15px;
   text-align: center;
 }
+
+* {
+  font-family: 'open sans', 'lato', 'helvetica', sans-serif;
+}
+
+(.5, .2, .2, 1.1)
