@@ -13,6 +13,9 @@
     <script src="../js/bootstrap.min.js"></script>
     <link href="../css/tester.css" rel="stylesheet">
 
+    <script src="//platform.linkedin.com/in.js" type="text/javascript"></script>
+    <script type="IN/MemberProfile" data-id="https://www.linkedin.com/in/michaelrhouse" data-format="inline"></script>
+
     <script>
         $(function() {
             $('#navbar a').click(function() {
@@ -102,8 +105,11 @@
 
         function updateDatabaseView(returnedData1, returnedData2, chartType, dbStringArray) {
             if (returnedData1.time.length < 1 || returnedData2.value.length < 1) {
-                $("#errorflag").html("No data matches those search parameters."); //if either of our data arrays have a 0 length, display an error and do not render the chart
+                $("#errorflag").html("Error: No data matches those search parameters."); //if either of our data arrays have a 0 length, display an error and do not render the chart
                 return;
+            }
+            else {
+                $("#errorflag").html("");
             }
 
             var chartMonth1;
@@ -159,7 +165,7 @@
                     },
                     yAxis: {
                         title: {
-                            text: 'Temperature'
+                            text: chartSub
                         }
                     },
                     xAxis: {
@@ -191,7 +197,7 @@
             <div class="container" id="Developer">
                 <div class="container" id="Repository">
                     <div class="container" id="Contact">
-                        <nav class="navbar navbar-inverse navbar-fixed-top"  id="ct6">
+                        <nav class="navbar navbar-inverse navbar-fixed-top" id="ct6">
                             <div class="container">
                                 <div class="navbar-header">
                                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -216,58 +222,148 @@
                         </nav>
                         <div class="page" id="page1">
                             <div class="statusOne">
-                            <h1 style="font-size:25pt;">Temperature (Fahrenheit)</h1>
-                            <h2 style="font-size:15pt;" id="temperaturef"></h2>
-                            <h1 style="font-size:25pt;">Temperature (Celcius)</h1>
-                            <h2 style="font-size:15pt;" id="temperaturec"></h2>
-                            <h1 style="font-size:25pt;">Current Light Level</h1>
-                            <h2 style="font-size:15pt;" id="lightlevel"></h2>
-                            </p>
-                            </p>
-                            Temperature Servo Angle (1-10):
-                            <input type="textbox" id="tempA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-                            <button onclick="moveTempServo()">Move Servo</button>
-                            </p>
-
-                            Light Servo Angle (1-10):
-                            <input type="textbox" id="lightA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-                            <button onclick="moveLightServo()">Move Servo</button>
-                            </p>
-                            </p>
-                            </div> <!-- inner div to page one -->
+                                <table class="readingTable readingTable-Rounded">
+                                    <thead>
+                                        <tr>
+                                            <th>Temperature (F)</th>
+                                            <th>Temperature (C)</th>
+                                            <th>Light (Lux)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <h2 style="font-size:15pt;" id="temperaturef"></h2></td>
+                                            <td>
+                                                <h2 style="font-size:15pt;" id="temperaturec"></h2></td>
+                                            <td>
+                                                <h2 style="font-size:15pt;" id="lightlevel"></h2></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </br>
+                                </br>
+                                Temperature Servo Angle (1-10):
+                                <input type="textbox" id="tempA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';" />
+                                <button onclick="moveTempServo()" class="servoB">Move Servo</button>
+                                </br>
+                                </br>
+                                Light Servo Angle (1-10):
+                                <input type="textbox" id="lightA" value="Enter an angle" onfocus="if (this.value=='Enter an angle') this.value ='';" />
+                                <button onclick="moveLightServo()" class="servoB">Move Servo</button>
+                                </p>
+                                </p>
+                            </div>
+                            <!-- inner div to page one -->
                         </div>
                         <div class="page" id="page2">
-                            Chart Services:
-                            </p>
-                            <input type="textbox" id="dbLow" value="Enter chart lowrange" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-                            </p>
-                            <input type="textbox" id="dbHigh" value="Enter chart lowrange" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-                            </p>
-                            <input type="textbox" id="dbqType" value="Temp or Light Range" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-                            </p>
-                            <input type="textbox" id="dbType" value="Type temp or light for type of graph:" onfocus="if (this.value=='Enter an angle') this.value ='';" />
-                            </p>
-                            </p>
-                            <button onclick="generateChart()">Generate Chart</button>
-                            </p>
-                            <h2 style="font-size:25pt;" id="errorflag"></h2>
-                            </p>
-                            <div id="chartContainer" style="height: 400px"></div>
+                            <div id="navBarSpacer"></div>
+                            <div class="analyticsWrapper">
+                                <div id="API">How to use chart services:
+                                    </p>
+                                    1. Select whether to display a temperature chart or a light chart.
+                                    </p>
+                                    2. Select whether you want to data inbetween a date range or a value range.
+                                    </p>
+                                    3. Enter a range of values to see the corresponding graph.
+                                    </p>
+                                    4. If you want a range of dates displayed please follow this format:
+                                    </p>
+                                    Date should be entered in this format: Month/Day/Year (Ex: 4/17/2016)
+                                    </p>
+                                    Time should be entered in this format: Hour:Minute:Second (Ex: 2:55:15)
+                                </div>
+                                <div id="chartWrapper">
+                                    <div class="chartButtons">
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="typeChart" id="tempC" value="1"> Temp Chart
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="typeChart" id="lightC" value="2"> Light Chart
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="typeInput" id="timeR" value="1"> Time Range
+                                            </label>
+                                        </div>
+                                        <div class="radio">
+                                            <label>
+                                                <input type="radio" name="typeInput" id="valueR" value="2"> Value Range
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="chartServices">
+                                        Value Range
+                                        </p>
+                                        <input type="textbox" id="dbLow" value="Low" onfocus="if (this.value=='Low') this.value ='';" />
+                                        </p>
+                                        <input type="textbox" id="dbHigh" value="High" onfocus="if (this.value=='High') this.value ='';" />
+                                        </p>
+                                        - OR -
+                                        </p>
+                                        Date
+                                        </p>
+                                        <input type="textbox" id="dateEarly" value="Beginning Date" onfocus="if (this.value=='Beginning Date') this.value ='';" />
+                                        </p>
+                                        <input type="textbox" id="dateLate" value="Ending Date" onfocus="if (this.value=='Ending Date') this.value ='';" />
+                                        </p>
+                                        Time
+                                        </p>
+                                        <input type="textbox" id="timeLow" value="Beginning Time" onfocus="if (this.value=='Beginning Time') this.value ='';" />
+                                        </p>
+                                        <input type="textbox" id="timeHigh" value="Ending Time" onfocus="if (this.value=='Ending Time') this.value ='';" />
+                                        </p>
+                                        <button onclick="generateChart()" class="generateButton">Generate Chart</button>
+                                        <button onclick="clearInputs()" class="clearButton">Clear Input Fields</button>
+                                        </p>
+                                    </div>
+                                    <h2 style="font-size:25pt;" id="errorflag"></h2>
+                                    </p>
+                                    <div id="chartContainer" style="height: 400px"></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="page" id="page3">
-                            <h1 style="font-size:25pt;">This is page 3</h1>
+                            <div id="bioSpacer">Header</div>
+                            <div class="bioWrapper"></div>
+                            <div id="spacer1"></div>
+                            <div id="bio">
+                                <img src="BioPic2.jpg" style="width:640px;height:427px;">
+                                </p>
+                                I am working towards a Bachelor of Science in Computer Science at Pacific Lutheran University with an anticipated graduation date of December 2016. I have six years of professional experience as a medical laboratory technician three of which were in the United States Army. My previous internship experience includes
+                                work as a Factory Information Systems Software Developer at the Georgia Tech Manufacturing Institute. My areas of interest include Software Development, Computer and Network Security and Machine Learning.
+                            </div>
                         </div>
                         <div class="page" id="page4">
-                            <h1 style="font-size:25pt;">This is page 4</h1>
+                            <div id = "repoSpacer"></div>
+                            <div id = "repoContainer">
+                            <a href = "https://housemr@bitbucket.org/housemr/capstone.git">Bitbucket.org Repository</a>
+                            </div>
                         </div>
                         <div class="page" id="page5">
-                            <h1 style="font-size:25pt;">This is page 5</h1>
+                        <div id="contactSpacer"></div>
+                            <div class="contactWrapper">
+                                <div class="contactOne">
+                                    <strong>Email: </strong><br></p>housemr@plu.edu</p>
+                                    <p>mikehouse85@gmail.com</p>
+                                    <br>
+                                    <strong>LinkedIn</strong>
+                                    <br>
+                                    <a href="https://www.linkedin.com/pub/michael-house/83/a7/986">
+                                        <img src="https://static.licdn.com/scds/common/u/img/webpromo/btn_myprofile_160x33.png" width="160" height="33" border="0" alt="View Michael House's profile on LinkedIn">
+
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
     <script>
         function moveTempServo() {
@@ -283,11 +379,107 @@
         }
 
         function generateChart() { //we need to grab the parameters from the user and run our query to build our chart
+            var typeHolder = 0;
+            var rangeHolder = 0;
+            var dType = 0;
+            var qType = 0;
             var dLow = document.getElementById("dbLow").value;
             var dHigh = document.getElementById("dbHigh").value;
-            var dType = document.getElementById("dbType").value;
-            var qType = document.getElementById("dbqType").value;
+            if (document.getElementById('lightC').checked) {
+                dType = 2;
+            }
+            else {
+                dType = 1;
+            }
+            if (document.getElementById('valueR').checked) {
+                qType = 2;
+            }
+            else {
+                qType = 1;
+                var bYear = 0;
+                var bMonth = 0;
+                var bDay = 0;
+                var bHour = 0;
+                var bMinute = 0;
+                var bSecond = 0;
+                var eYear = 0;
+                var eMonth = 0;
+                var eDay = 0;
+                var eHour = 0;
+                var eMinute = 0;
+                var eSecond = 0;
+                var begdateCapture = document.getElementById("dateEarly").value;
+                var enddateCapture = document.getElementById("dateLate").value;
+                var begtimeCapture = document.getElementById("timeLow").value;
+                var endtimeCapture = document.getElementById("timeHigh").value;
+
+                var begdSplit = begdateCapture.split("/");
+                var enddSplit = enddateCapture.split("/");
+                var begtSplit = begtimeCapture.split(":");
+                var endtSplit = endtimeCapture.split(":");
+
+
+                if (begdSplit[2] != null) {
+                    bYear = +begdSplit[2] * 10000000000;
+                    console.log(bYear);
+                }
+                if (begdSplit[0] != null) {
+                    bMonth = +begdSplit[0] * 100000000;
+                    console.log(bMonth);
+                }
+                if (begdSplit[1] != null) {
+                    bDay = +begdSplit[1] * 1000000;
+                    console.log(bDay);
+                }
+                if (begtSplit[0] != null) {
+                    bHour = +begtSplit[0] * 10000;
+                    console.log(bHour);
+                }
+                if (begtSplit[1] != null) {
+                    bMinute = +begtSplit[1] * 100;
+                    console.log(bMinute);
+                }
+                if (begtSplit[2] != null) {
+                    bSecond = +begtSplit[2];
+                    console.log(bSecond);
+                }
+
+                if (enddSplit[2] != null) {
+                    eYear = +enddSplit[2] * 10000000000;
+                }
+                if (enddSplit[0] != null) {
+                    eMonth = +enddSplit[0] * 100000000;
+                }
+                if (enddSplit[1] != null) {
+                    eDay = +enddSplit[1] * 1000000;
+                }
+                if (endtSplit[0] != null) {
+                    eHour = +endtSplit[0] * 10000;
+                }
+                if (endtSplit[1] != null) {
+                    eMinute = +endtSplit[1] * 100;
+                }
+                if (endtSplit[2] != null) {
+                    eSecond = +endtSplit[2];
+                }
+
+                var beginTime = bYear + bMonth + bDay + bHour + bMinute + bSecond;
+                console.log(beginTime);
+                var endTime = eYear + eMonth + eDay + eHour + eMinute + eSecond;
+                dLow = beginTime;
+                dHigh = endTime;
+            }
             socket.emit('database', dLow, dHigh, dType, qType); //low date/value range, high date/value range, which table are we pulling from (temp or light), what range are we searching in (date or value)
+        }
+
+        function clearInputs() {
+
+            document.getElementById("dateEarly").value = "Beginning Date";
+            document.getElementById("dateLate").value = "Ending Date";
+            document.getElementById("timeLow").value = "Beginning Time";
+            document.getElementById("timeHigh").value = "Ending Time";
+            document.getElementById("dbLow").value = "Low";
+            document.getElementById("dbHigh").value = "High";
         }
 
         function grabTime() { // lets grab the time and return it as a large integer value

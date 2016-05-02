@@ -77,6 +77,10 @@ io.sockets.on('connection', function(socket) { //list of functions we will suppo
     socket.on('moveLServo', moveLServo); //call moveLServo method and pass toggleLServo value from client
     socket.on('moveTServo', moveTServo); //call moveTServo method with toggleTServo value from client
     socket.on('database', function(dbLow, dbHigh, dbType, qType) {
+        console.log(dbType);
+        console.log(qType);
+        console.log(dbLow);
+        console.log(dbHigh);
         database.dbnewGrab(function callback(err, tempResult2) {
             var dataTest2 = tempResult2;
             var dbTimeReturn = convertOutput(dataTest2, 1); //get an array of time values in string format

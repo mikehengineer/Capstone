@@ -12,7 +12,7 @@ html, body, .page{
 }
 
 * {
-  font-family: "Arial";
+  font-family: Arial,sans-serif;
 }
 
 .page {
@@ -25,12 +25,83 @@ html, body, .page{
   display:table;
 }
 
+.readingTable {
+    border: solid 1px #0099FF;
+    border-collapse: collapse;
+    border-spacing: 0;
+    font: normal 13px Arial, sans-serif;
+    width:50%; 
+    margin-left:25%; 
+    margin-right:25%;
+}
+.readingTable thead th {
+    background-color: #0099FF;
+    border: solid 1px #0099FF;
+    color: #336B6B;
+    padding: 10px;
+    text-align: center;
+    font-size: 30px;
+}
+.readingTable tbody td {
+    border: solid 1px #0099FF;
+    color: #333;
+    padding: 10px;
+}
+.readingTable-Rounded {
+    border: none;
+}
+.readingTable-Rounded thead th {
+    background-color: #0099FF;
+    border: none;
+    color: #333;
+}
+.readingTable-Rounded thead th:first-child {
+    border-radius: 10px 0 0 0;
+}
+.readingTable-Rounded thead th:last-child {
+    border-radius: 0 10px 0 0;
+}
+.readingTable-Rounded tbody td {
+    border: none;
+    border-top: solid 1px #000000;
+    background-color: #cce5ff;
+    text-align: center;
+    font-size: 25px;
+}
+.readingTable-Rounded tbody tr:last-child td:first-child {
+    border-radius: 0 0 0 10px;
+}
+.readingTable-Rounded tbody tr:last-child td:last-child {
+    border-radius: 0 0 10px 0;
+}
+
 #page2, #page3, #page4, #page5 {
   top: 194%;
   left: 0;
 }
 
-#page1,#page2,#page3,#page4,#page5 { background: #887ACB; }
+#page1,#page5 { 
+  background: #000000;
+  color: #cce5ff;
+}
+
+#tempA, #lightA, #dbLow, #dbHigh, #dateEarly, #dateLate, #timeLow, #timeHigh{
+  color: #000;
+}
+
+.servoB, .generateButton, .clearButton{
+  color: #000;
+}
+#page2{
+  background: #14243D;
+  color: #cce5ff;
+}
+#page3{
+  background: #4C6EA3;
+}
+#page4{
+  background: #80ABEF;
+}
 
 #Analysis:target #page2,
 #Developer:target #page3,
@@ -84,3 +155,80 @@ html, body, .page{
     vertical-align:middle;
     text-align:center;
 }
+
+.chartButtons{
+  float: left;
+  width: 30%;
+  height: 20%;
+}
+
+.chartServices{
+  float: right;
+  width: 70%;
+  height: 40%;
+}
+
+#navBarSpacer{
+  height: 5%;
+}
+
+#API {
+  float: left;
+  width: 25%;
+}
+
+#chartWrapper{
+  float:right;
+  width: 75%;
+}
+
+.analyticsWrapper{
+  font-size: 120%; 
+}
+
+#bioSpacer{
+  height:10%;
+}
+
+#spacer1{
+  float: left;
+  width: 25%;
+}
+
+#bio{
+  position: relative;
+  left: 35%;
+  width: 28%;
+  word-wrap: break-word;
+  font-size: 145%;
+}
+
+#contactSpacer{
+  height:30%;
+}
+
+#repoSpacer{
+  height:35%;
+}
+
+#repoContainer{
+  position: relative;
+  left: 42%;
+  width: 28%;
+  word-wrap: break-word;
+  font-size: 180%;
+  color: #000;
+}
+
+#repoContainer a{
+  color: #000;
+}
+
+.contactOne{
+  position: relative;
+  left: 42%;
+  width: 28%;
+  word-wrap: break-word;
+  font-size: 145%
+}
+
