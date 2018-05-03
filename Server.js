@@ -38,7 +38,7 @@ function listener(req, res) { //listener function will containe our routing impl
             pageName = urlPath; //if file exists this will be fed to the filesystem.readfile
         }
         else {
-            pageName = 'index3.html'; //if the pathname is empty or does not exist give readfile index.html
+            pageName = 'index.html'; //if the pathname is empty or does not exist give readfile index.html
         }
         fs.readFile(pageName, function(err, data) { //read the file if it exists and return the correct header type 
             if (err) {
